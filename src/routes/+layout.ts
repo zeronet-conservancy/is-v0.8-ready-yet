@@ -1,6 +1,7 @@
 import { connectWS, getServerInfo } from 'znapi';
 
 export const ssr = false;
+export const prerender = true;
 
 export const load = async () => {
   connectWS();
