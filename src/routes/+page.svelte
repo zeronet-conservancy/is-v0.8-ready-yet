@@ -3,14 +3,17 @@
   import RgbNoise from './RgbNoise.svelte';
 
   const { data } = $props();
-  const { serverInfo } = data;
+  const { serverInfo, znAPI } = data;
 
   const isReady = false;
   const details = "alpha version is expected to be ready for testing by the end of October; stable release before the end of 2024.";
-  const zeroConnected = true;
-  const localVersion = serverInfo.version;
-  console.log(serverInfo);
+  const localVersion = serverInfo.then(info => info.version);
   const stableVersion = 'v0.7.10';
+
+  const requestPermission = (ev) => {
+    ev.preventDefault();
+    znAPI.requestPermission('VERSION');
+  };
 </script>
 
 
@@ -29,15 +32,22 @@
     </h1>
     <h3 class="details">..{details}</h3>
     <p>The latest stable version is {stableVersion}. You
-      {#if !zeroConnected}
+      {#await localVersion}
         do not seem to view this page through 0net.
-      {:else if versionCompare(localVersion, stableVersion) < 0}
-        are using {localVersion}. Consider upgrading!
-      {:else if versionCompare(localVersion, stableVersion) === 0}
-        are up to date!
-      {:else}
-        are using newer (perhaps pre-release?) version ({localVersion})!
-      {/if}
+      {:then version}
+        {#if !(/^\d/.test(version[0]))}
+          are using {version} which is hiding specific release. Consider <a href="#requestVersion" onclick={requestPermission}>adding permission</a>
+          for this site to read version information.
+        {:else if versionCompare(version, stableVersion) < 0}
+          are using {version}. Consider upgrading!
+        {:else if versionCompare(version, stableVersion) === 0}
+          are up to date!
+        {:else}
+          are using newer (perhaps pre-release?) version ({version})!
+        {/if}
+      {:catch error}
+        do not seem to view this page through 0net.
+      {/await}
     </p>
   </div>
 </div>
