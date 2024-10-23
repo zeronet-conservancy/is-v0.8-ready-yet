@@ -1,18 +1,29 @@
 <script lang="ts">
   import versionCompare from 'semantic-compare';
   import RgbNoise from './RgbNoise.svelte';
+  import { onMount } from 'svelte';
 
   const { data } = $props();
-  const { serverInfo, znAPI } = data;
+  const { znAPI } = data;
 
   const isReady = false;
   const details = "alpha version is expected to be ready for testing by the end of October; stable release before the end of 2024.";
-  const localVersion = serverInfo.then(info => info.version);
   const stableVersion = 'v0.7.10';
 
-  const requestPermission = (ev) => {
+  let localVersion = $state('');
+
+  const fetchVersion = async () => {
+    localVersion = (await znAPI.getServerInfo()).version;
+  };
+
+  onMount(async () => {
+    await fetchVersion();
+  });
+
+  const requestPermission = async (ev) => {
     ev.preventDefault();
-    znAPI.requestPermission('VERSION');
+    await znAPI.requestPermission('VERSION');
+    await fetchVersion();
   };
 </script>
 
@@ -32,22 +43,18 @@
     </h1>
     <h3 class="details">..{details}</h3>
     <p>The latest stable version is {stableVersion}. You
-      {#await localVersion}
+      {#if localVersion === ''}
         do not seem to view this page through 0net.
-      {:then version}
-        {#if !(/^\d/.test(version[0]))}
-          are using {version} which is hiding specific release. Consider <a href="#requestVersion" onclick={requestPermission}>adding permission</a>
-          for this site to read version information.
-        {:else if versionCompare(version, stableVersion) < 0}
-          are using {version}. Consider upgrading!
-        {:else if versionCompare(version, stableVersion) === 0}
-          are up to date!
-        {:else}
-          are using newer (perhaps pre-release?) version ({version})!
-        {/if}
-      {:catch error}
-        do not seem to view this page through 0net.
-      {/await}
+      {:else if !(/^\d/.test(localVersion[0]))}
+        are using {localVersion} which is hiding specific release. Consider <a href="#requestVersion" onclick={requestPermission}>adding permission</a>
+        for this site to read version information.
+      {:else if versionCompare(localVersion, stableVersion) < 0}
+        are using {localVersion}. Consider upgrading!
+      {:else if versionCompare(localVersion, stableVersion) === 0}
+        are up to date!
+      {:else}
+        are using newer (perhaps pre-release?) version ({localVersion})!
+      {/if}
     </p>
   </div>
 </div>
