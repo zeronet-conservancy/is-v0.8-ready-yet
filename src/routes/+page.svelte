@@ -56,6 +56,14 @@
         are using newer (perhaps pre-release?) version ({localVersion})!
       {/if}
     </p>
+    <h3>Checklist</h3>
+    <ul>
+      <li>robust alternative to ZeroID and filtering system (WIP)</li>
+      <li>DHT support (works, not integrated into main yet, needs improvements)</li>
+      <li>easy site development (partially implemented, see znapi)</li>
+      <li>builds for major desktop platforms</li>
+      <li>✔ new data directory structure (separate common data from private/local)</li>
+    </ul>
   </div>
 </div>
 
